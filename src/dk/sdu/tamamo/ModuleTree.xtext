@@ -1,0 +1,149 @@
+grammar dk.sdu.tamamo.ModuleTree with org.eclipse.xtext.common.Terminals
+
+generate moduleTree "http://www.sdu.dk/tamamo/ModuleTree"
+
+Start:
+	parent=ParentTree
+;
+
+TreeType:
+	ParentTree | ChildTree
+;
+
+ParentTree:
+	module_name = ID '(' (
+		"Decisions:" decision=Decision
+	
+		"Input:" input=Input
+		
+		"Parameters:" 
+		parameter=Parameter
+		
+		"Rules:" 
+		rules=Rules
+		
+		"Conclusion:" 
+		conclusion=Conclusion
+	) ')'
+	
+	(next=TreeType)?
+;
+
+ChildTree:
+	module_name = ID 'extends' parent=ID '(' (
+		"Decisions:" decision=Decision
+	
+		"Input:" input=Input
+		
+		"Parameters:" 
+		parameter=Parameter
+		
+		"Rules:" 
+		rules=Rules
+		
+		"Conclusion:" 
+		conclusion=Conclusion
+	) ')'
+	
+	(next=TreeType)?
+;
+
+Decision:
+	{DecisionNormal} text=ID ("," next=Decision)? | {DecisionNested} text=ID "(" nested=Decision ")" ("," next=Decision)?
+;
+
+Input:
+	value=InputType ("," next=Input)? 
+;
+
+InputType:
+	InputInt | InputBool | InputString
+;
+
+InputInt:
+	"int" name=ID
+;
+
+InputBool:
+	"bool" name=ID 
+;
+
+InputString:
+	"string" name=ID
+;
+
+Parameter:
+	name=ID "=" value=INT 
+	(next=Parameter)?
+;
+
+Rules:
+	rule=RuleLogic "?" effect=EffectType
+	(next=Rules)?
+;
+
+RuleLogic:
+	'if' left=RuleType (operator=Operator right=RuleType)?
+;
+
+EffectType:
+	(RulesChange | RulesConclude) 
+;
+
+RulesChange:
+	points=PointsOperator affected_parameter=ID
+;
+
+RulesConclude:
+	('decide' | 'conclude') decision=ID
+;
+
+
+PointsOperator:
+	{Subtract} 'sub'(points=INT)? 'from' |{Add} 'add' (points=INT)? 'to'
+;
+
+Operator:
+	{GreaterThan} type='>' | {LessThan} type='<' | {GreaterEqual} type='>=' | {LessEqual} type='<='	| {Equals} type='=='
+;
+
+RuleType:
+	{RuleTypeID} name=ID | {RuleTypeExp} exp=Exp
+;
+
+Exp returns Expression:
+	Factor (('+' {Plus.left=current} | '-' {Minus.left=current} ) right=Factor)*
+;
+
+Factor returns Expression:
+	Primary (('*' {Mult.left=current} | '/' {Div.left=current} ) right=Primary)*
+;
+
+Primary returns Expression:
+	Number | Parenthesis 
+;
+
+Parenthesis returns Expression:
+	'(' Exp ')'
+;
+
+Number:
+	value=INT
+;
+
+Conclusion:
+	rule=RuleLogic ":" 'conclude' decision=ID 
+	(next=Conclusion)? | 
+	
+	ConclusionNested |
+	
+	ConclusionElse
+;
+
+ConclusionElse:
+	"else:" left=RuleType
+;
+
+ConclusionNested:
+	'if' parent=ID "(" nested=Conclusion ")"
+;
