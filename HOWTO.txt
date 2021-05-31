@@ -1,0 +1,15 @@
+javac decisiontree/*.java
+
+java decisiontree.XMain input
+
+
+Example: 
+
+java decisiontree.VIPMain 0 0 0 0 0 1
+output: accept
+
+java decisiontree.VIPMain 0 0 0 0 0 0
+output: not_reasonable
+
+java decisiontree.VIPMain 6001 0 0 0 0 0
+output: accept
