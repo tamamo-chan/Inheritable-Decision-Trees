@@ -1,3 +1,10 @@
+xtext and xtend code in src/dk/sdu/tamamo
+
+
+For trying the decision tree: 
+
+go to source and generated code example/src-gen
+
 javac decisiontree/*.java
 
 java decisiontree.XMain input
